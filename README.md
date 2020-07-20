@@ -1,2 +1,2 @@
 # aquamon
-Aquaponics monitoring using Arduino managed sensore
+Aquaponics monitoring using Arduino managed sensors
