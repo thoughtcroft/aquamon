@@ -27,6 +27,7 @@ const char thingsboardServer[] = BW_THINGSBOARD_SERVER;
 const char token[] = BW_THINGSBOARD_TOKEN;
 ThingsBoard tb(espClient);
 
+bool debug = BW_DEBUG;
 
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
@@ -105,8 +106,10 @@ void getAndSendData() {
   // Attempt to deserialize the JSON-formatted message
   DeserializationError error = deserializeJson(doc, message);
   if (error) {
-    Serial.print(F("\nDeserializeJson() failed: "));
-    Serial.println(error.c_str());
+    if (debug) {
+      Serial.print(F("\nDeserializeJson() failed: "));
+      Serial.println(error.c_str());
+    }
     return;
   }
 
@@ -118,11 +121,15 @@ void getAndSendData() {
     char jsonChar[100];
     doc.remove("type");
     serializeJson(doc, jsonChar);
-    Serial.print(F("\nSending JSON: "));
-    Serial.println(jsonChar);
+    if (debug) {
+      Serial.print(F("\nSending JSON: "));
+      Serial.println(jsonChar);
+    }
     tb.sendTelemetryJson(jsonChar);
   } else {
-    Serial.print(F("\nInvalid type received: "));
-    Serial.println(type);
+    if (debug) {
+      Serial.print(F("\nInvalid type received: "));
+      Serial.println(type);
+    }
   }
 }
