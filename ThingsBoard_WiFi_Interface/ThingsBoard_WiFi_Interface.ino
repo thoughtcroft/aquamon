@@ -6,42 +6,36 @@
   File: ThingsBoard_WiFi_Interface.ino
   ------------------------------------------------------------------------------
   Description:
-  Controller for connecting to my ThingsBoard instance and posting data that has
-  been sent from the Arduino Uno via the Serial connection
+  Controller for connecting to my ThingsBoard instance via Wi-Fi and posting data
+  that has been sent from the Arduino Uno via the Serial connection
   ------------------------------------------------------------------------------*/
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <ThingsBoard.h>
-#include "BainsworldConfig.h"
-
-// Timing values
-const int SEND_FREQUENCY = 1000;
-const int RETRY_DELAY = 500;
-const int RECONNECT_DELAY = 5000;
-const int SERIAL_BAUD = 115200;
+#include "BainsworldConfig.h"  // sensitive config values from here
+#include "CommonConfig.h"      // common values such as timing defaults
 
 // Wi-Fi
-const char ssid[] = WIFI_SSID;
-const char pass[] = WIFI_PASSWORD;
+const char ssid[] = BW_WIFI_SSID;
+const char pass[] = BW_WIFI_PASSWORD;
 int status = WL_IDLE_STATUS;
 unsigned long lastSend;
 WiFiClient espClient;
 
 // ThingsBoard
-const char thingsboardServer[] = THINGSBOARD_SERVER;
-const char token[] = THINGSBOARD_TOKEN;
+const char thingsboardServer[] = BW_THINGSBOARD_SERVER;
+const char token[] = BW_THINGSBOARD_TOKEN;
 ThingsBoard tb(espClient);
 
 
 void setup() {
-  Serial.begin(SERIAL_BAUD);
+  Serial.begin(BW_SERIAL_BAUD);
   while (WiFi.status() != WL_CONNECTED)
   {
-    Serial.print(".");
-    delay(RETRY_DELAY);
+    Serial.print(F("."));
+    delay(BW_RETRY_DELAY);
   }
-  Serial.println("");
-  Serial.print("IP Address: ");
+  Serial.print(F("\nIP Address: "));
   Serial.println(WiFi.localIP());
 }
 
@@ -49,19 +43,19 @@ void loop() {
   status = WiFi.status();
   if ( status != WL_CONNECTED) {
     while ( status != WL_CONNECTED) {
-      Serial.print("Attempting to connect to SSID: ");
+      Serial.print(F("Attempting to connect to SSID: "));
       Serial.println(ssid);
       status = WiFi.begin(ssid, pass);
-      delay(RETRY_DELAY);
+      delay(BW_RETRY_DELAY);
     }
-    Serial.println("Connected to SSID");
+    Serial.println(F("Connected to SSID"));
   }
 
   if ( !tb.connected() ) {
     reconnectThingsBoard();
   }
 
-  if ( millis() - lastSend > SEND_FREQUENCY ) {
+  if ( millis() - lastSend > BW_SEND_FREQUENCY ) {
     getAndSendData();
     lastSend = millis();
   }
@@ -72,15 +66,15 @@ void loop() {
 void reconnectThingsBoard() {
   // Loop until we're reconnected
   while (!tb.connected()) {
-    Serial.print("Connecting to ThingsBoard node ...");
+    Serial.print(F("Connecting to ThingsBoard node ..."));
     // Attempt to connect (clientId, username, password)
     if ( tb.connect(thingsboardServer, token) ) {
-      Serial.println( "[DONE]" );
+      Serial.println(F("[DONE]"));
     } else {
-      Serial.print( "[FAILED]" );
-      Serial.println( " : retrying..." );
+      Serial.print(F("[FAILED]"));
+      Serial.println(F(" : retrying..."));
       // Wait before retrying
-      delay( RECONNECT_DELAY );
+      delay( BW_RECONNECT_DELAY );
     }
   }
 }
@@ -89,12 +83,11 @@ void getAndSendData() {
   // Send a JSON-formatted request with key "type" and value "request"
   // then obtain the response and submit keys to ThingsBoard
   DynamicJsonDocument doc(1024);
-  long temperature = 0;
-  
+
   // Sending the request
   doc["type"] = "request";
   serializeJson(doc, Serial);
-  
+
   // Reading the response
   boolean messageReady = false;
   String message = "";
@@ -104,18 +97,28 @@ void getAndSendData() {
       messageReady = true;
     }
   }
-  
+
   // Attempt to deserialize the JSON-formatted message
   DeserializationError error = deserializeJson(doc, message);
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
+    Serial.print(F("\ndeserializeJson() failed: "));
     Serial.println(error.c_str());
     return;
   }
 
-  // Just send temperature for now
-  temperature = doc["temperature"];
-  Serial.print("Sending temperature: ");
-  Serial.println(temperature);
-  tb.sendTelemetryFloat("temperature", temperature);
+  // Check message is valid
+  const char* type = doc["type"];
+  if ((type) && (strcmp(type, "response") == 0))  {
+    // Send JSON without the type keyword
+    // everything else is telemetry data
+    char jsonChar[100];
+    doc.remove("type");
+    serializeJson(doc, jsonChar);
+    Serial.print(F("\nSending JSON: "));
+    Serial.println(jsonChar);
+    tb.sendTelemetryJson(jsonChar);
+  } else {
+    Serial.print(F("\ninvalid type received: "));
+    Serial.println(type);
+  }
 }
