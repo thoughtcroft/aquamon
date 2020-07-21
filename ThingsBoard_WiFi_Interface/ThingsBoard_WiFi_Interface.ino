@@ -17,7 +17,7 @@
 
 // Wi-Fi
 const char ssid[] = BW_WIFI_SSID;
-const char pass[] = BW_WIFI_PASSWORD;
+const char password[] = BW_WIFI_PASSWORD;
 int status = WL_IDLE_STATUS;
 unsigned long lastSend;
 WiFiClient espClient;
@@ -30,32 +30,21 @@ ThingsBoard tb(espClient);
 
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print(F("."));
-    delay(BW_RETRY_DELAY);
-  }
-  Serial.print(F("\nIP Address: "));
-  Serial.println(WiFi.localIP());
+  delay(BW_RECONNECT_DELAY);
+  Serial.println();
+  Serial.println(F("Starting aquamon receiver ..."));
 }
 
 void loop() {
-  status = WiFi.status();
-  if ( status != WL_CONNECTED) {
-    while ( status != WL_CONNECTED) {
-      Serial.print(F("Attempting to connect to SSID: "));
-      Serial.println(ssid);
-      status = WiFi.begin(ssid, pass);
-      delay(BW_RETRY_DELAY);
-    }
-    Serial.println(F("Connected to SSID"));
+  if (WiFi.status() != WL_CONNECTED) {
+    connectWiFi();
   }
 
-  if ( !tb.connected() ) {
-    reconnectThingsBoard();
+  if (!tb.connected()) {
+    connectThingsBoard();
   }
 
-  if ( millis() - lastSend > BW_SEND_FREQUENCY ) {
+  if (millis() - lastSend > BW_SEND_FREQUENCY) {
     getAndSendData();
     lastSend = millis();
   }
@@ -63,11 +52,26 @@ void loop() {
   tb.loop();
 }
 
-void reconnectThingsBoard() {
-  // Loop until we're reconnected
+void connectWiFi() {
+  status = WiFi.begin(ssid, password);
+  if (status != WL_CONNECTED) {
+    Serial.print(F("Connecting to SSID: "));
+    Serial.print(ssid);
+    while (status != WL_CONNECTED) {
+      Serial.print(F("."));
+      delay(BW_RETRY_DELAY);
+      status = WiFi.status();
+    }
+    Serial.println(F("[DONE]"));
+    Serial.print(F("IP Address: "));
+    Serial.println(WiFi.localIP());
+  }
+}
+
+void connectThingsBoard() {
+  // Loop until we're connected
   while (!tb.connected()) {
-    Serial.print(F("Connecting to ThingsBoard node ..."));
-    // Attempt to connect (clientId, username, password)
+    Serial.print(F("Connecting to ThingsBoard node......"));
     if ( tb.connect(thingsboardServer, token) ) {
       Serial.println(F("[DONE]"));
     } else {
@@ -91,7 +95,7 @@ void getAndSendData() {
   // Reading the response
   boolean messageReady = false;
   String message = "";
-  while (messageReady == false) { // blocking but that's ok
+  while ( messageReady == false ) { // blocking but that's ok
     if (Serial.available()) {
       message = Serial.readString();
       messageReady = true;
@@ -101,7 +105,7 @@ void getAndSendData() {
   // Attempt to deserialize the JSON-formatted message
   DeserializationError error = deserializeJson(doc, message);
   if (error) {
-    Serial.print(F("\ndeserializeJson() failed: "));
+    Serial.print(F("\nDeserializeJson() failed: "));
     Serial.println(error.c_str());
     return;
   }
@@ -118,7 +122,7 @@ void getAndSendData() {
     Serial.println(jsonChar);
     tb.sendTelemetryJson(jsonChar);
   } else {
-    Serial.print(F("\ninvalid type received: "));
+    Serial.print(F("\nInvalid type received: "));
     Serial.println(type);
   }
 }
