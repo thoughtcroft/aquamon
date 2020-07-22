@@ -9,8 +9,10 @@
   Controller for connecting to my ThingsBoard instance via Wi-Fi and posting data
   that has been sent from the Arduino Uno via the Serial connection
   ------------------------------------------------------------------------------*/
-#include <ESP8266WiFi.h>
+#define DISABLE_LOGGING
 #include <ArduinoJson.h>
+#include <ArduinoLog.h>
+#include <ESP8266WiFi.h>
 #include <ThingsBoard.h>
 #include "BainsworldConfig.h"  // sensitive config values from here
 #include "CommonConfig.h"      // common values such as timing defaults
@@ -27,13 +29,17 @@ const char thingsboardServer[] = BW_THINGSBOARD_SERVER;
 const char token[] = BW_THINGSBOARD_TOKEN;
 ThingsBoard tb(espClient);
 
-bool debug = BW_DEBUG;
-
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
-  delay(BW_RECONNECT_DELAY);
-  Serial.println();
-  Serial.println(F("Starting aquamon receiver ..."));
+  delay(500);
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
+  while (!Serial && !Serial.available()) {
+    // wait for Serial port to be available
+  }
+  Log.notice(F("" CR));
+  Log.notice(F("*********************************" CR));
+  Log.notice(F("*** Starting aquamon receiver ***" CR));
+  Log.notice(F("*********************************" CR));
 }
 
 void loop() {
@@ -56,28 +62,26 @@ void loop() {
 void connectWiFi() {
   status = WiFi.begin(ssid, password);
   if (status != WL_CONNECTED) {
-    Serial.print(F("Connecting to SSID: "));
-    Serial.print(ssid);
+    Log.verbose(F("Connecting to SSID: %s..."), ssid);
     while (status != WL_CONNECTED) {
-      Serial.print(F("."));
+      // Wait before retrying
       delay(BW_RETRY_DELAY);
       status = WiFi.status();
     }
-    Serial.println(F("[DONE]"));
-    Serial.print(F("IP Address: "));
-    Serial.println(WiFi.localIP());
+    Log.verbose(F("[DONE]" CR));
+    Log.verbose(F("IP Address: %s" CR), WiFi.localIP().toString().c_str());
   }
 }
 
 void connectThingsBoard() {
   // Loop until we're connected
   while (!tb.connected()) {
-    Serial.print(F("Connecting to ThingsBoard node......"));
+    Log.verbose(F("Connecting to ThingsBoard node..."));
     if ( tb.connect(thingsboardServer, token) ) {
-      Serial.println(F("[DONE]"));
+      Log.verbose(F("[DONE]" CR));
     } else {
-      Serial.print(F("[FAILED]"));
-      Serial.println(F(" : retrying..."));
+      Log.verbose(F("[FAILED]"));
+      Log.verbose(F(" : retrying..."));
       // Wait before retrying
       delay( BW_RECONNECT_DELAY );
     }
@@ -104,12 +108,10 @@ void getAndSendData() {
   }
 
   // Attempt to deserialize the JSON-formatted message
+  Log.verbose(F(CR "Received message: %s"), message.c_str());
   DeserializationError error = deserializeJson(doc, message);
   if (error) {
-    if (debug) {
-      Serial.print(F("\nDeserializeJson() failed: "));
-      Serial.println(error.c_str());
-    }
+    Log.error(F("DeserializeJson() failed: %s" CR), error.c_str());
     return;
   }
 
@@ -121,15 +123,9 @@ void getAndSendData() {
     char jsonChar[100];
     doc.remove("type");
     serializeJson(doc, jsonChar);
-    if (debug) {
-      Serial.print(F("\nSending JSON: "));
-      Serial.println(jsonChar);
-    }
+    Log.verbose(F("Sending JSON: %s" CR), jsonChar);
     tb.sendTelemetryJson(jsonChar);
   } else {
-    if (debug) {
-      Serial.print(F("\nInvalid type received: "));
-      Serial.println(type);
-    }
+    Log.error(F("Invalid type received: %s" CR), type);
   }
 }
