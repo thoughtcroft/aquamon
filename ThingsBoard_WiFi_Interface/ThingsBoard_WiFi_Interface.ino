@@ -9,13 +9,14 @@
   Controller for connecting to my ThingsBoard instance via Wi-Fi and posting data
   that has been sent from the Arduino Uno via the Serial connection
   ------------------------------------------------------------------------------*/
-#define DISABLE_LOGGING
+
+#include "BainsworldConfig.h"  // sensitive config values from here - goes first
+#include "CommonConfig.h"      // common values such as timing defaults
+
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
 #include <ESP8266WiFi.h>
 #include <ThingsBoard.h>
-#include "BainsworldConfig.h"  // sensitive config values from here
-#include "CommonConfig.h"      // common values such as timing defaults
 
 // Wi-Fi
 const char ssid[] = BW_WIFI_SSID;
@@ -29,6 +30,7 @@ const char thingsboardServer[] = BW_THINGSBOARD_SERVER;
 const char token[] = BW_THINGSBOARD_TOKEN;
 ThingsBoard tb(espClient);
 
+
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
   delay(500);
@@ -37,9 +39,9 @@ void setup() {
     // wait for Serial port to be available
   }
   Log.notice(F("" CR));
-  Log.notice(F("*********************************" CR));
-  Log.notice(F("*** Starting aquamon receiver ***" CR));
-  Log.notice(F("*********************************" CR));
+  Log.notice(F("*******************************" CR));
+  Log.notice(F("*** Starting aquamon sender ***" CR));
+  Log.notice(F("*******************************" CR));
 }
 
 void loop() {

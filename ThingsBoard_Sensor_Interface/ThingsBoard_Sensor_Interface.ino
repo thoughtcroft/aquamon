@@ -9,30 +9,44 @@
   Controller for connecting to various sensors using the Arduino Uno and then
   sending the telemetry data to ThingsBoard via an ESP8266 D1 Mini via Serial
   ------------------------------------------------------------------------------*/
-#include <ArduinoJson.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+
+#include "BainsworldConfig.h"  // sensitive config values from here - goes first
 #include "CommonConfig.h"      // common values such as timing defaults
 
-// sensor configurations
+#include <ArduinoJson.h>
+#include <ArduinoLog.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 // DS18B20 temperature sensor
 #define ONE_WIRE_BUS 2
+#define WATER_TEMP_ADDR 0
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+DeviceAddress waterThermometer;
 
-bool debug = BW_DEBUG;
 String message = "";
 bool messageReady = false;
 DynamicJsonDocument doc(1024); // ArduinoJson version 6+
 
+
 void setup() {
-  sensors.begin();
-  sensors.setResolution(9);
   Serial.begin(BW_SERIAL_BAUD);
-  delay(BW_RECONNECT_DELAY);
-  Serial.println();
-  Serial.println(F("Starting aquamon sender ..."));
+  delay(500);
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
+  while (!Serial && !Serial.available()) {
+    // wait for Serial port to be available
+  }
+  Log.notice(F("" CR));
+  Log.notice(F("**********************************" CR));
+  Log.notice(F("*** Starting aquamon collector ***" CR));
+  Log.notice(F("**********************************" CR));
+
+  sensors.begin();
+  if (!sensors.getAddress(waterThermometer, WATER_TEMP_ADDR)) {
+    Log.error(F("Unable to find waterThermometer on address %s" CR), WATER_TEMP_ADDR);
+  }
+  sensors.setResolution(waterThermometer, 9);
 }
 
 void loop() {
@@ -46,7 +60,7 @@ void loop() {
     // The only messages we'll parse will be formatted in JSON
     if (checkMessage()) {
       doc["type"] = "response";
-      doc["temperature"] = getTemperature();
+      doc["water_temperature"] = getWaterTemperature();
       serializeJson(doc, Serial);
     }
     messageReady = false;
@@ -55,30 +69,24 @@ void loop() {
 
 bool checkMessage() {
   // Attempt to deserialize the JSON-formatted message
+  Log.verbose(F(CR "Received message: %s"), message.c_str());
   DeserializationError error = deserializeJson(doc, message);
   if (error) {
-    if (debug) {
-      Serial.print(F("\nDeserializeJson() failed: "));
-      Serial.println(error.c_str());
-    }
-    return false;
+    Log.error(F("DeserializeJson() failed: %s" CR), error.c_str());
+    return;
   }
-
   // Check message is valid
   const char* type = doc["type"];
   if ((type) && (strcmp(type, "request") == 0))  {
     return true;
   } else {
-    if (debug) {
-      Serial.print(F("\nInvalid type received: "));
-      Serial.println(type);
-    }
+    Log.error(F("Invalid type received: %s" CR), type);
     return false;
   }
 }
 
 
-float getTemperature() {
+float getWaterTemperature() {
   sensors.requestTemperatures(); 
-  return sensors.getTempCByIndex(0);
+  return sensors.getTempC(waterThermometer);
 }
