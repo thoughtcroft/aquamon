@@ -18,12 +18,11 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// DS18B20 temperature sensor
+// Temperature sensors
 #define ONE_WIRE_BUS 2
-#define WATER_TEMP_ADDR 0
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-DeviceAddress waterThermometer;
+DeviceAddress waterThermometer = { 0x28, 0x3F, 0x80, 0x90, 0x3A, 0x19, 0x01, 0x49 };
 
 String message = "";
 bool messageReady = false;
@@ -41,12 +40,13 @@ void setup() {
   Log.notice(F("**********************************" CR));
   Log.notice(F("*** Starting aquamon collector ***" CR));
   Log.notice(F("**********************************" CR));
+  Log.notice(F("" CR));
 
-  sensors.begin();
-  if (!sensors.getAddress(waterThermometer, WATER_TEMP_ADDR)) {
-    Log.error(F("Unable to find waterThermometer on address %s" CR), WATER_TEMP_ADDR);
-  }
-  sensors.setResolution(waterThermometer, 9);
+  // initialize digital pin LED_BUILTIN as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  // setup various sensors
+  setUpWaterTemperature();
 }
 
 void loop() {
@@ -61,7 +61,9 @@ void loop() {
     if (checkMessage()) {
       doc["type"] = "response";
       doc["water_temperature"] = getWaterTemperature();
+      Log.notice(F("Sending response: "));
       serializeJson(doc, Serial);
+      flashLED();
     }
     messageReady = false;
   }
@@ -69,11 +71,11 @@ void loop() {
 
 bool checkMessage() {
   // Attempt to deserialize the JSON-formatted message
-  Log.verbose(F(CR "Received message: %s"), message.c_str());
+  Log.verbose(F("Received message: %s"), message.c_str());
   DeserializationError error = deserializeJson(doc, message);
   if (error) {
     Log.error(F("DeserializeJson() failed: %s" CR), error.c_str());
-    return;
+    return false;
   }
   // Check message is valid
   const char* type = doc["type"];
@@ -85,8 +87,23 @@ bool checkMessage() {
   }
 }
 
+void setUpWaterTemperature() {
+  sensors.begin();
+  if (!sensors.validAddress(waterThermometer) || !sensors.isConnected(waterThermometer)) {
+    Log.error(F("The waterThermometer has an invalid or missing address!" CR));
+  } else {
+    Log.notice(F("Found waterThermometer at address" CR));
+    sensors.setResolution(waterThermometer, 9);  
+  }
+}
 
 float getWaterTemperature() {
-  sensors.requestTemperatures(); 
+  sensors.requestTemperaturesByAddress(waterThermometer); 
   return sensors.getTempC(waterThermometer);
+}
+
+void flashLED() {
+  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on
+  delay(BW_RETRY_DELAY);             // wait a bit
+  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off
 }

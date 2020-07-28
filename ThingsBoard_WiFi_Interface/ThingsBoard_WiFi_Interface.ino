@@ -42,6 +42,7 @@ void setup() {
   Log.notice(F("*******************************" CR));
   Log.notice(F("*** Starting aquamon sender ***" CR));
   Log.notice(F("*******************************" CR));
+  Log.notice(F("" CR));
 }
 
 void loop() {
