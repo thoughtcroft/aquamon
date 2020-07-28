@@ -19,6 +19,7 @@
 #include <DallasTemperature.h>
 
 // Temperature sensors
+// specific hardware address for each sensor
 #define ONE_WIRE_BUS 2
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -31,7 +32,7 @@ DynamicJsonDocument doc(1024); // ArduinoJson version 6+
 
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
-  delay(500);
+  delay(BW_RETRY_DELAY);       // wait a bit
   Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
   while (!Serial && !Serial.available()) {
     // wait for Serial port to be available
@@ -46,7 +47,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // setup various sensors
-  setUpWaterTemperature();
+  setupThermometer(waterThermometer, "water temperature sensor");
 }
 
 void loop() {
@@ -60,7 +61,7 @@ void loop() {
     // The only messages we'll parse will be formatted in JSON
     if (checkMessage()) {
       doc["type"] = "response";
-      doc["water_temperature"] = getWaterTemperature();
+      doc["water_temperature"] = getTemperature(waterThermometer);
       Log.notice(F("Sending response: "));
       serializeJson(doc, Serial);
       flashLED();
@@ -87,19 +88,19 @@ bool checkMessage() {
   }
 }
 
-void setUpWaterTemperature() {
+void setupThermometer(DeviceAddress deviceAddress, const char* deviceName) {
   sensors.begin();
-  if (!sensors.validAddress(waterThermometer) || !sensors.isConnected(waterThermometer)) {
-    Log.error(F("The waterThermometer has an invalid or missing address!" CR));
+  if (!sensors.validAddress(deviceAddress) || !sensors.isConnected(deviceAddress)) {
+    Log.error(F("The %s has an invalid or missing address!" CR), deviceName);
   } else {
-    Log.notice(F("Found waterThermometer at address" CR));
-    sensors.setResolution(waterThermometer, 9);  
+    Log.notice(F("Found %s at address %i" CR), deviceName, deviceAddress);
+    sensors.setResolution(deviceAddress, 9);
   }
 }
 
-float getWaterTemperature() {
-  sensors.requestTemperaturesByAddress(waterThermometer); 
-  return sensors.getTempC(waterThermometer);
+float getTemperature(DeviceAddress deviceAddress) {
+  sensors.requestTemperaturesByAddress(deviceAddress);
+  return sensors.getTempC(deviceAddress);
 }
 
 void flashLED() {
