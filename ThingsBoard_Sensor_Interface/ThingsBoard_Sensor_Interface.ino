@@ -130,10 +130,11 @@ float calculateFlowRate() {
 }
 
 float getFlowCounter(int ticks) {
-  attachInterrupt(digitalPinToInterrupt(flowPin), updateFlowCounter, RISING);
+  int interrupt = digitalPinToInterrupt(flowPin);
+  attachInterrupt(interrupt, updateFlowCounter, RISING);
   flowCounter = 0;                  // Reset the counter so we start counting from 0 again
   delay(ticks);                     // wait for configured period
-  detachInterrupt(digitalPinToInterrupt(flowPin));
+  detachInterrupt(interrupt);
   return flowCounter;
 }
 
