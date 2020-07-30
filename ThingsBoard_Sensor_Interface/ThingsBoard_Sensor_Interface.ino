@@ -34,9 +34,6 @@ DynamicJsonDocument doc(1024); // ArduinoJson version 6+
 // Flow rate sensor
 int flowPin = 3;               // This is the input pin on the Arduino
 volatile int flowCounter;      // This integer needs to be set as volatile to ensure it updates correctly during the interrupt process
-void updateFlowCounter() {     // Interrupt Service Routine
-   flowCounter++;              // Every time this function is called, increment "count" by 1
-}
 
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
@@ -133,9 +130,13 @@ float calculateFlowRate() {
 }
 
 float getFlowCounter(int ticks) {
-  flowCounter = 0;                  // Reset the counter so we start counting from 0 again
   attachInterrupt(digitalPinToInterrupt(flowPin), updateFlowCounter, RISING);
+  flowCounter = 0;                  // Reset the counter so we start counting from 0 again
   delay(ticks);                     // wait for configured period
   detachInterrupt(digitalPinToInterrupt(flowPin));
   return flowCounter;
+}
+
+void updateFlowCounter() {     // Interrupt Service Routine
+   flowCounter++;              // Every time this function is called, increment "count" by 1
 }
