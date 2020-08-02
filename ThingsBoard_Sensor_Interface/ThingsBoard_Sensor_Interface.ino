@@ -21,10 +21,15 @@
 // Temperature sensors
 // specific hardware address for each sensor
 #define ONE_WIRE_BUS 2
+#define TEMP_RESOLUTION 10
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 DeviceAddress waterThermometer = { 0x28, 0x3F, 0x80, 0x90, 0x3A, 0x19, 0x01, 0x49 };
 DeviceAddress airThermometer = { 0x28, 0x1A, 0x52, 0x94, 0x97, 0x08, 0x03, 0xB5 };
+// calibration data { low, high }
+float waterTempRange[] = { 0.5, 100.0 };
+float airTempRange[] = { 1.4, 99.0 };
+float refTempRange[] = { 0.0, 99.6 };
 
 // Messages via UART
 String message = "";
@@ -68,8 +73,8 @@ void loop() {
     // The only messages we'll parse will be formatted in JSON
     if (checkMessage()) {
       doc["type"] = "response";
-      doc["water_temperature"] = getTemperature(waterThermometer);
-      doc["air_temperature"] = getTemperature(airThermometer);
+      doc["water_temperature"] = getTemperature(waterThermometer, waterTempRange);
+      doc["air_temperature"] = getTemperature(airThermometer, airTempRange);
       doc["flow_rate"] = calculateFlowRate();
       Log.notice(F("Sending response: "));
       serializeJson(doc, Serial);
@@ -104,13 +109,18 @@ void setupThermometer(DeviceAddress deviceAddress, const char* deviceName) {
     Log.error(F("The %s has an invalid or missing address!" CR), deviceName);
   } else {
     Log.notice(F("Found %s at address %d" CR), deviceName, deviceAddress);
-    sensors.setResolution(deviceAddress, 9);
+    sensors.setResolution(deviceAddress, TEMP_RESOLUTION);
   }
 }
 
-float getTemperature(DeviceAddress deviceAddress) {
+float getTemperature(DeviceAddress deviceAddress, float rawTempRange[]) {
+  // adjust the reading based on measured point calibration
+  static float refRange = refTempRange[HIGH] - refTempRange[LOW];
+  float rawRange = rawTempRange[HIGH] - rawTempRange[LOW];
+  float rawTemp;
   sensors.requestTemperaturesByAddress(deviceAddress);
-  return sensors.getTempC(deviceAddress);
+  rawTemp = sensors.getTempC(deviceAddress);
+  return ((((rawTemp - rawTempRange[LOW]) * refRange) / rawRange) + refTempRange[LOW]);
 }
 
 void flashLED() {
