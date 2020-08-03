@@ -19,9 +19,8 @@ There are several components that work together.
 
 ### ThingsBoard IoT Platform
 
-I am using ThingsBoard Community edition software for managing IoT services
-including device management, rules based actions, dashboards etc. See
-https://thingsboard.io/ for more information.
+I am using [ThingsBoard Community](https://thingsboard.io/) software for managing IoT services
+including device management, rules based actions, dashboards etc.
 
 There is a comprehensive rules engine for managing events such as device
 off-line, data range violations etc. I am using a Telegram bot to alert
@@ -50,7 +49,7 @@ I am indebted to the internet community for so much good content on how
 to set up and develop code using the Arduino IDE.
 
 The two systems use a serial connection to communicate using an approach
-that I borrowed from Acrobotic (see https://youtu.be/6-RXqFS_UtU).
+that I borrowed from [Acrobotic](https://youtu.be/6-RXqFS_UtU).
 
 The different sensors have been interfaced using ideas from:
 
