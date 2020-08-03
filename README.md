@@ -1,4 +1,4 @@
-# aquamon
+# Aquamon
 
 Aquaponics monitoring using Arduino managed sensors.
 
@@ -15,7 +15,7 @@ This project uses two different micro-controllers:
 
 There are several components that work together.
 
-## components
+## Components
 
 ### ThingsBoard IoT Platform
 
@@ -44,7 +44,7 @@ ThingsBoard_Sensor_Interface Sketch is a loop that listens to the Serial
 connection for a request and then reads the different sensors and
 forwards the data using JSON in a format that ThingsBoard understands.
 
-## acknowledgements
+## Acknowledgements
 
 I am indebted to the internet community for so much good content on how
 to set up and develop code using the Arduino IDE.
@@ -63,4 +63,4 @@ The different sensors have been interfaced using ideas from:
 
 In each case though, I have attempted to simplify and improve the
 suggested approaches. Feel free to comment or suggest additional
-improvments or borrow this approach to suit your own situation.
+improvements or borrow this approach to suit your own situation.
