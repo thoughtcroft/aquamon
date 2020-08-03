@@ -130,24 +130,22 @@ void flashLED() {
 }
 
 float calculateFlowRate() {
-  static float mlPerTick = 2.25;    // Each tick from the sensor is approx this many millilitres
-  float flowRate = 0;               // Count the number of ticks per second to compute rate
   float flowCounter = getFlowCounter(1000);
-  flowRate = flowCounter * mlPerTick;
-  flowRate = flowRate * 60;         // Convert into millilitres / minute
-  flowRate = flowRate / 1000;       // Convert into litres / minute
+  float flowRate = flowCounter * 2.25;    // Millilitres per tick (approx)
+  flowRate = flowRate * 60;               // Convert into millilitres / minute
+  flowRate = flowRate / 1000;             // Convert into litres / minute
   return flowRate;
 }
 
 float getFlowCounter(int ticks) {
-  int interrupt = digitalPinToInterrupt(flowPin);
+  static int interrupt = digitalPinToInterrupt(flowPin);
   attachInterrupt(interrupt, updateFlowCounter, RISING);
-  flowCounter = 0;                  // Reset the counter so we start counting from 0 again
+  flowCounter = 0;                  // reset the counter
   delay(ticks);                     // wait for configured period
-  detachInterrupt(interrupt);
+  detachInterrupt(interrupt);       // stop updating counter
   return flowCounter;
 }
 
 void updateFlowCounter() {     // Interrupt Service Routine
-   flowCounter++;              // Every time this function is called, increment "count" by 1
+   flowCounter++;              // Every time this function is called, increment counter by 1
 }
