@@ -43,6 +43,13 @@ ThingsBoard_Sensor_Interface Sketch is a loop that listens to the Serial
 connection for a request and then reads the different sensors and
 forwards the data using JSON in a format that ThingsBoard understands.
 
+## Images
+
+This is a schematic of the breadboard set up for linking sensors with
+the Arduino board as well as connecting the D1 Mini ESP8266 via serial.
+
+![Schematic](/images/Aquamon_bb.png)
+
 ## Acknowledgements
 
 I am indebted to the internet community for so much good content on how

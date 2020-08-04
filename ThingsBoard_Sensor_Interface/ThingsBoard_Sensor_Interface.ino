@@ -48,10 +48,10 @@ DynamicJsonDocument doc(1024); // ArduinoJson version 6+
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
   delay(BW_RETRY_DELAY);       // wait a bit
-  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
   while (!Serial && !Serial.available()) {
     // wait for Serial port to be available
   }
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
   Log.notice(F("" CR));
   Log.notice(F("**********************************" CR));
   Log.notice(F("*** Starting aquamon collector ***" CR));
@@ -85,7 +85,7 @@ void loop() {
       Log.notice(F("Sending response: "));
       serializeJson(doc, Serial);
       Log.notice(CR);
-      flashLED();
+      flashLED();  // so a human observer knows we just sent data
     }
     messageReady = false;
   }
@@ -124,9 +124,8 @@ float getTemperature(DeviceAddress deviceAddress, float rawTempRange[]) {
   // adjust the reading based on measured point calibration
   static float refRange = refTempRange[HIGH] - refTempRange[LOW];
   float rawRange = rawTempRange[HIGH] - rawTempRange[LOW];
-  float rawTemp;
   sensors.requestTemperaturesByAddress(deviceAddress);
-  rawTemp = sensors.getTempC(deviceAddress);
+  float rawTemp = sensors.getTempC(deviceAddress);
   return ((((rawTemp - rawTempRange[LOW]) * refRange) / rawRange) + refTempRange[LOW]);
 }
 
@@ -155,5 +154,5 @@ float getFlowCounter(int ticks) {
 
 void updateFlowCounter() {
   // Interrupt Service Routine to count pulses
-   flowCounter++;
+  flowCounter++;
 }

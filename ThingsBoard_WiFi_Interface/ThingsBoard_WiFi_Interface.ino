@@ -34,16 +34,17 @@ ThingsBoard tb(espClient);
 void setup() {
   Serial.begin(BW_SERIAL_BAUD);
   delay(500);
-  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
   while (!Serial && !Serial.available()) {
     // wait for Serial port to be available
   }
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
   Log.notice(F("" CR));
   Log.notice(F("*******************************" CR));
   Log.notice(F("*** Starting aquamon sender ***" CR));
   Log.notice(F("*******************************" CR));
   Log.notice(F("" CR));
 }
+
 
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
@@ -129,6 +130,6 @@ void getAndSendData() {
     Log.verbose(F("Sending JSON: %s" CR), jsonChar);
     tb.sendTelemetryJson(jsonChar);
   } else {
-    Log.error(F("Invalid type received: %s" CR), type);
+    Log.error(F("Invalid message type received: %s" CR), type);
   }
 }
