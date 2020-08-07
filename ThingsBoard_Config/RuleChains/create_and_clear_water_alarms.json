@@ -14,7 +14,7 @@
     "nodes": [
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Add parameters from device attributes to the msg metadata",
           "layoutX": 50,
           "layoutY": 263
         },
@@ -37,7 +37,7 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Ensure that alarms don't bounce by delaying clear for configured period",
           "layoutX": 291,
           "layoutY": 256
         },
@@ -50,7 +50,7 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Update device attribute for use in preventing \"alarm bounce\"",
           "layoutX": 800,
           "layoutY": 474
         },
@@ -63,7 +63,7 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Save the time of the alarm to device so we can access later when deciding whether to clear it",
           "layoutX": 1107,
           "layoutY": 475
         },
@@ -76,7 +76,7 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Create a suitable alert message to be sent via Telegram",
           "layoutX": 804,
           "layoutY": 309
         },
@@ -84,12 +84,12 @@
         "name": "Format Telegram message",
         "debugMode": false,
         "configuration": {
-          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n var alarmTemp = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\";\n     alarmTemp = msg.details.water_temperature;\n } else {\n     alarmStatus = \"Cleared\";\n     alarmTemp = msg.details.clearedTemperature;\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"' + \" => water temperature: \" + alarmTemp;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
+          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n var alarmTemp = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\";\n     alarmTemp = msg.details.water_temperature.toFixed(1);\n } else {\n     alarmStatus = \"Cleared\";\n     alarmTemp = msg.details.clearedTemperature.toFixed(1);\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"' + \" => water temperature: \" + alarmTemp;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
         }
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Check if temperature is outside configured normal range",
           "layoutX": 43,
           "layoutY": 366
         },
@@ -102,7 +102,7 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Create an alarm when temperature is outside operating norms",
           "layoutX": 546,
           "layoutY": 359
         },
@@ -120,7 +120,7 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Clear the temperature alarm when it is within operating norms",
           "layoutX": 548,
           "layoutY": 259
         },
@@ -188,7 +188,7 @@
           "id": "906b2780-d211-11ea-83bc-7d69c6e15ac8"
         },
         "additionalInfo": {
-          "description": "",
+          "description": "Call rule chain to send the message to Telegram",
           "layoutX": 1105,
           "layoutY": 304,
           "ruleChainNodeId": "rule-chain-node-10"

@@ -1,7 +1,7 @@
 {
   "ruleChain": {
     "additionalInfo": {
-      "description": "For detecting outlier water temperatures"
+      "description": "Handles all messages that need to be sent to Telegram"
     },
     "name": "Send Alert to Telegram",
     "firstRuleNodeId": null,
@@ -14,7 +14,7 @@
     "nodes": [
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Obtain the api key and chat id from the device for Telegram api call",
           "layoutX": 59,
           "layoutY": 254
         },
@@ -35,26 +35,26 @@
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Turn message into suitable format for Telegram",
           "layoutX": 348,
           "layoutY": 255
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "New Telegram Message",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "jsScript": " var newMsg = {};\n newMsg.text = msg.text;\n newMsg.chat_id = metadata.ss_telegramChatID;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
         }
       },
       {
         "additionalInfo": {
-          "description": "",
+          "description": "Call Telegram api to send message to the Aquamon chat bot",
           "layoutX": 622,
           "layoutY": 257
         },
         "type": "org.thingsboard.rule.engine.rest.TbRestApiCallNode",
         "name": "REST API Telegram Call",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "restEndpointUrlPattern": "https://api.telegram.org/bot${ss_telegramBotToken}/sendMessage",
           "requestMethod": "POST",

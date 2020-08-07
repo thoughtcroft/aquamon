@@ -8,12 +8,13 @@
     "configuration": null
   },
   "metadata": {
-    "firstNodeIndex": 2,
+    "firstNodeIndex": 1,
     "nodes": [
       {
         "additionalInfo": {
-          "layoutX": 660,
-          "layoutY": 135
+          "description": "Persist received data from devices",
+          "layoutX": 595,
+          "layoutY": 83
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -24,19 +25,7 @@
       },
       {
         "additionalInfo": {
-          "description": null,
-          "layoutX": 659,
-          "layoutY": 55
-        },
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
-        "name": "Save Client Attributes",
-        "debugMode": false,
-        "configuration": {
-          "scope": "SERVER_SCOPE"
-        }
-      },
-      {
-        "additionalInfo": {
+          "description": "Route messages to other rule chains",
           "layoutX": 261,
           "layoutY": 149
         },
@@ -50,12 +39,7 @@
     ],
     "connections": [
       {
-        "fromIndex": 2,
-        "toIndex": 1,
-        "type": "Post attributes"
-      },
-      {
-        "fromIndex": 2,
+        "fromIndex": 1,
         "toIndex": 0,
         "type": "Post telemetry"
       }
@@ -68,37 +52,37 @@
           "id": "5f0f7390-cfe5-11ea-83bc-7d69c6e15ac8"
         },
         "additionalInfo": {
-          "description": "",
-          "layoutX": 961,
-          "layoutY": 134,
+          "description": "Call rule chain to handle relevant water temp alarms",
+          "layoutX": 884,
+          "layoutY": 81,
           "ruleChainNodeId": "rule-chain-node-5"
         },
         "type": "Success"
       },
       {
-        "fromIndex": 2,
+        "fromIndex": 1,
         "targetRuleChainId": {
           "entityType": "RULE_CHAIN",
           "id": "8440dfa0-d242-11ea-a0c5-0740efe98fd4"
         },
         "additionalInfo": {
-          "description": "",
-          "layoutX": 656,
-          "layoutY": 212,
+          "description": "Call rule chain to handle inactivity alerts",
+          "layoutX": 586,
+          "layoutY": 266,
           "ruleChainNodeId": "rule-chain-node-6"
         },
         "type": "Activity Event"
       },
       {
-        "fromIndex": 2,
+        "fromIndex": 1,
         "targetRuleChainId": {
           "entityType": "RULE_CHAIN",
           "id": "8440dfa0-d242-11ea-a0c5-0740efe98fd4"
         },
         "additionalInfo": {
-          "description": "",
-          "layoutX": 656,
-          "layoutY": 212,
+          "description": "Call rule chain to handle inactivity alerts",
+          "layoutX": 586,
+          "layoutY": 266,
           "ruleChainNodeId": "rule-chain-node-6"
         },
         "type": "Inactivity Event"
