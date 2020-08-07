@@ -1,0 +1,112 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Create and Clear Inactivity Alarms",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 3,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 568,
+          "layoutY": 275
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Create Telegram message",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\"\n } else {\n     alarmStatus = \"Cleared\"\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"';\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 311,
+          "layoutY": 187
+        },
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "Create Inactivity Alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n}\nreturn details;",
+          "useMessageAlarmData": false,
+          "alarmType": "Inactivity Timeout",
+          "severity": "WARNING",
+          "propagate": true,
+          "relationTypes": []
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 304,
+          "layoutY": 384
+        },
+        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+        "name": "Clear Inactivity Alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n}\nreturn details;",
+          "alarmType": "Inactivity Timeout"
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 44,
+          "layoutY": 255
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 1,
+        "toIndex": 0,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Cleared"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 1,
+        "type": "Inactivity Event"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 2,
+        "type": "Activity Event"
+      }
+    ],
+    "ruleChainConnections": [
+      {
+        "fromIndex": 0,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "906b2780-d211-11ea-83bc-7d69c6e15ac8"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 883,
+          "layoutY": 274,
+          "ruleChainNodeId": "rule-chain-node-6"
+        },
+        "type": "Success"
+      }
+    ]
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": "For detecting outlier water temperatures"
+    },
+    "name": "Create and Clear Water Alarms",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": true,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 0,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 50,
+          "layoutY": 263
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Add Alarm Attributes",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "lastWaterTempAlarmTime",
+            "lowWaterTempThreshold",
+            "highWaterTempThreshold",
+            "clearAlarmTimeDelay"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 291,
+          "layoutY": 256
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Alarm Clear Delay Check",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var alarmTime = Number(metadata.ss_lastWaterTempAlarmTime);\nvar alarmDelay = Number(metadata.ss_clearAlarmTimeDelay);\nreturn metadata.ts >= alarmDelay + alarmTime;"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 800,
+          "layoutY": 474
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Update Alarm Time",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var msgtype = \"POST_ATTRIBUTES_REQUEST\";\nvar payload = {};\npayload.lastWaterTempAlarmTime = metadata.ts;\nreturn {\n    msg: payload,\n    metadata: metadata,\n    msgType: msgtype\n};"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1107,
+          "layoutY": 475
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Alarm Time",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 804,
+          "layoutY": 309
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Format Telegram message",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n var alarmTemp = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\";\n     alarmTemp = msg.details.water_temperature;\n } else {\n     alarmStatus = \"Cleared\";\n     alarmTemp = msg.details.clearedTemperature;\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"' + \" => water temperature: \" + alarmTemp;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 43,
+          "layoutY": 366
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Water Temperature Out Of Range",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var lowTemp = Number(metadata.ss_lowWaterTempThreshold);\nvar highTemp = Number(metadata.ss_highWaterTempThreshold);\nvar msgTemp = msg.water_temperature;\nreturn msgTemp < lowTemp || msgTemp > highTemp;"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 546,
+          "layoutY": 359
+        },
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "Create Alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\ndetails.water_temperature = msg.water_temperature;\ndetails.alarm_time = metadata.ts;\nif (metadata.prevAlarmDetails) {\n    var prevDetails = JSON.parse(metadata.prevAlarmDetails);\n    details.count = prevDetails.count + 1;\n} else {\n    details.count = 1;\n}\nreturn details;",
+          "useMessageAlarmData": false,
+          "alarmType": "Critical Temperature",
+          "severity": "CRITICAL",
+          "propagate": true,
+          "relationTypes": []
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 548,
+          "layoutY": 259
+        },
+        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+        "name": "Clear Alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n}\ndetails.clearedTemperature = msg.water_temperature;\nreturn details;",
+          "alarmType": "Critical Temperature"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 5,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 7,
+        "type": "True"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 6,
+        "type": "True"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 1,
+        "type": "False"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Updated"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 4,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 4,
+        "type": "Cleared"
+      }
+    ],
+    "ruleChainConnections": [
+      {
+        "fromIndex": 4,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "906b2780-d211-11ea-83bc-7d69c6e15ac8"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1105,
+          "layoutY": 304,
+          "ruleChainNodeId": "rule-chain-node-10"
+        },
+        "type": "Success"
+      }
+    ]
+  }
+}

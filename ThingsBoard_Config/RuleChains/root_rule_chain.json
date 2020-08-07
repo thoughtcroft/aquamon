@@ -1,0 +1,108 @@
+{
+  "ruleChain": {
+    "additionalInfo": null,
+    "name": "Root Rule Chain",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 2,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 660,
+          "layoutY": 135
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 659,
+          "layoutY": 55
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 261,
+          "layoutY": 149
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Post telemetry"
+      }
+    ],
+    "ruleChainConnections": [
+      {
+        "fromIndex": 0,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "5f0f7390-cfe5-11ea-83bc-7d69c6e15ac8"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 961,
+          "layoutY": 134,
+          "ruleChainNodeId": "rule-chain-node-5"
+        },
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "8440dfa0-d242-11ea-a0c5-0740efe98fd4"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 656,
+          "layoutY": 212,
+          "ruleChainNodeId": "rule-chain-node-6"
+        },
+        "type": "Activity Event"
+      },
+      {
+        "fromIndex": 2,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "8440dfa0-d242-11ea-a0c5-0740efe98fd4"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 656,
+          "layoutY": 212,
+          "ruleChainNodeId": "rule-chain-node-6"
+        },
+        "type": "Inactivity Event"
+      }
+    ]
+  }
+}
