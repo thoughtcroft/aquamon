@@ -26,6 +26,11 @@ There is a comprehensive rules engine for managing events such as device
 off-line, data range violations etc. I am using a Telegram bot to alert
 me to such events on my phone.
 
+The RuleChains are available in this repo. All sensitive data and
+parameters are stored as server attributes on the relevant device in
+ThingsBoard. Again feel free to import these rule chains into your own
+ThingsBoard setup.
+
 ### Network connectivity
 
 The D1 Mini ESP8266 controller board is responsible for connecting to
