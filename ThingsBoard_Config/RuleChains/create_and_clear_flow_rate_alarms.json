@@ -1,0 +1,198 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": "For detecting water flow problems"
+    },
+    "name": "Create and Clear Flow Rate Alarms",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": true,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 0,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "Add parameters from device attributes to the msg metadata",
+          "layoutX": 50,
+          "layoutY": 263
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Add Alarm Attributes",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "clearAlarmTimeDelay",
+            "lowFlowRateThreshold"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Ensure that alarms don't bounce by delaying clear for configured period",
+          "layoutX": 291,
+          "layoutY": 256
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Alarm Clear Delay Check",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var alarmTime = Number(metadata.ss_lastFlowRateAlarmTime);\nvar alarmDelay = Number(metadata.ss_clearAlarmTimeDelay);\nreturn metadata.ts >= alarmDelay + alarmTime;"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Update device attribute for use in preventing \"alarm bounce\"",
+          "layoutX": 800,
+          "layoutY": 474
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Update Alarm Time",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var msgtype = \"POST_ATTRIBUTES_REQUEST\";\nvar payload = {};\npayload.lastFlowRateAlarmTime = metadata.ts;\nreturn {\n    msg: payload,\n    metadata: metadata,\n    msgType: msgtype\n};"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Save the time of the alarm to device so we can access later when deciding whether to clear it",
+          "layoutX": 1107,
+          "layoutY": 475
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Alarm Time",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Create a suitable alert message to be sent via Telegram",
+          "layoutX": 804,
+          "layoutY": 309
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Format Telegram message",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n var alarmFlowRate = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\";\n     alarmTemp = msg.details.flow_rate.toFixed(1);\n } else {\n     alarmStatus = \"Cleared\";\n     alarmTemp = msg.details.clearedFlowRate.toFixed(1);\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"' + \" => flow rate: \" + alarmFlowRate;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Check if flow rate is outside configured normal range",
+          "layoutX": 43,
+          "layoutY": 366
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Flow Rate Out Of Range",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var lowRate = Number(metadata.ss_lowFlowRateThreshold);\nreturn msg.flow_rate < lowRate;"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Create an alarm when flow rate is outside operating norms",
+          "layoutX": 546,
+          "layoutY": 359
+        },
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "Create Alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\ndetails.flow_rate = msg.flow_rate;\ndetails.alarm_time = metadata.ts;\nif (metadata.prevAlarmDetails) {\n    var prevDetails = JSON.parse(metadata.prevAlarmDetails);\n    details.count = prevDetails.count + 1;\n} else {\n    details.count = 1;\n}\nreturn details;",
+          "useMessageAlarmData": false,
+          "alarmType": "Critical Flow Rate",
+          "severity": "CRITICAL",
+          "propagate": true,
+          "relationTypes": []
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Clear the flow rate alarm when it is within operating norms",
+          "layoutX": 548,
+          "layoutY": 259
+        },
+        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+        "name": "Clear Alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n}\ndetails.clearedFlowRate = msg.flow_rate;\nreturn details;",
+          "alarmType": "Critical Flow Rate"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 5,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 7,
+        "type": "True"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 6,
+        "type": "True"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 1,
+        "type": "False"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 4,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Updated"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 4,
+        "type": "Cleared"
+      }
+    ],
+    "ruleChainConnections": [
+      {
+        "fromIndex": 4,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "906b2780-d211-11ea-83bc-7d69c6e15ac8"
+        },
+        "additionalInfo": {
+          "description": "Call rule chain to send the message to Telegram",
+          "layoutX": 1105,
+          "layoutY": 304,
+          "ruleChainNodeId": "rule-chain-node-10"
+        },
+        "type": "Success"
+      }
+    ]
+  }
+}

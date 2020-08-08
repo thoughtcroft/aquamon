@@ -13,8 +13,8 @@
       {
         "additionalInfo": {
           "description": "Persist received data from devices",
-          "layoutX": 595,
-          "layoutY": 83
+          "layoutX": 507,
+          "layoutY": 239
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -53,9 +53,23 @@
         },
         "additionalInfo": {
           "description": "Call rule chain to handle relevant water temp alarms",
-          "layoutX": 884,
-          "layoutY": 81,
-          "ruleChainNodeId": "rule-chain-node-5"
+          "layoutX": 839,
+          "layoutY": 215,
+          "ruleChainNodeId": "rule-chain-node-4"
+        },
+        "type": "Success"
+      },
+      {
+        "fromIndex": 0,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "77b58b40-d932-11ea-8ac9-37a219b88558"
+        },
+        "additionalInfo": {
+          "description": "Call rule chain to handle relevant flow rate alarms",
+          "layoutX": 843,
+          "layoutY": 284,
+          "ruleChainNodeId": "rule-chain-node-6"
         },
         "type": "Success"
       },
@@ -67,9 +81,9 @@
         },
         "additionalInfo": {
           "description": "Call rule chain to handle inactivity alerts",
-          "layoutX": 586,
-          "layoutY": 266,
-          "ruleChainNodeId": "rule-chain-node-6"
+          "layoutX": 838,
+          "layoutY": 147,
+          "ruleChainNodeId": "rule-chain-node-5"
         },
         "type": "Activity Event"
       },
@@ -81,9 +95,9 @@
         },
         "additionalInfo": {
           "description": "Call rule chain to handle inactivity alerts",
-          "layoutX": 586,
-          "layoutY": 266,
-          "ruleChainNodeId": "rule-chain-node-6"
+          "layoutX": 838,
+          "layoutY": 147,
+          "ruleChainNodeId": "rule-chain-node-5"
         },
         "type": "Inactivity Event"
       }
