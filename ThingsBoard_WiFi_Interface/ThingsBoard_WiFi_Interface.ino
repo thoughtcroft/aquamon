@@ -43,6 +43,11 @@ void setup() {
   Log.notice(F("*** Starting aquamon sender ***" CR));
   Log.notice(F("*******************************" CR));
   Log.notice(F("" CR));
+
+  // initialize digital pin LED_BUILTIN as an output
+  // and turn it off (that is HIGH on D1 mini)
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 
@@ -61,6 +66,7 @@ void loop() {
   }
 
   tb.loop();
+  flashLED();  // so a human observer knows we are doing something
 }
 
 void connectWiFi() {
@@ -132,4 +138,12 @@ void getAndSendData() {
   } else {
     Log.error(F("Invalid message type received: %s" CR), type);
   }
+}
+
+void flashLED() {
+  // turn the LED on and off so we know it is working
+  // note that it is inverted on D1 mini so LOW is on
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(BW_RETRY_DELAY);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
