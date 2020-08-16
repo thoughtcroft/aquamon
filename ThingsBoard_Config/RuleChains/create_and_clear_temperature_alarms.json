@@ -3,10 +3,10 @@
     "additionalInfo": {
       "description": "For detecting outlier water temperatures"
     },
-    "name": "Create and Clear Water Alarms",
+    "name": "Create and Clear Temperature Alarms",
     "firstRuleNodeId": null,
     "root": false,
-    "debugMode": true,
+    "debugMode": false,
     "configuration": null
   },
   "metadata": {
@@ -38,8 +38,8 @@
       {
         "additionalInfo": {
           "description": "Ensure that alarms don't bounce by delaying clear for configured period",
-          "layoutX": 291,
-          "layoutY": 256
+          "layoutX": 48,
+          "layoutY": 490
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Alarm Clear Delay Check",
@@ -51,8 +51,8 @@
       {
         "additionalInfo": {
           "description": "Update device attribute for use in preventing \"alarm bounce\"",
-          "layoutX": 800,
-          "layoutY": 474
+          "layoutX": 651,
+          "layoutY": 372
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Update Alarm Time",
@@ -64,8 +64,8 @@
       {
         "additionalInfo": {
           "description": "Save the time of the alarm to device so we can access later when deciding whether to clear it",
-          "layoutX": 1107,
-          "layoutY": 475
+          "layoutX": 977,
+          "layoutY": 374
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Alarm Time",
@@ -77,8 +77,8 @@
       {
         "additionalInfo": {
           "description": "Create a suitable alert message to be sent via Telegram",
-          "layoutX": 804,
-          "layoutY": 309
+          "layoutX": 665,
+          "layoutY": 486
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Format Telegram message",
@@ -103,8 +103,8 @@
       {
         "additionalInfo": {
           "description": "Create an alarm when temperature is outside operating norms",
-          "layoutX": 546,
-          "layoutY": 359
+          "layoutX": 299,
+          "layoutY": 373
         },
         "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
         "name": "Create Alarm",
@@ -121,8 +121,8 @@
       {
         "additionalInfo": {
           "description": "Clear the temperature alarm when it is within operating norms",
-          "layoutX": 548,
-          "layoutY": 259
+          "layoutX": 295,
+          "layoutY": 488
         },
         "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
         "name": "Clear Alarm",
@@ -189,8 +189,8 @@
         },
         "additionalInfo": {
           "description": "Call rule chain to send the message to Telegram",
-          "layoutX": 1105,
-          "layoutY": 304,
+          "layoutX": 979,
+          "layoutY": 462,
           "ruleChainNodeId": "rule-chain-node-10"
         },
         "type": "Success"

@@ -6,7 +6,7 @@
     "name": "Create and Clear Flow Rate Alarms",
     "firstRuleNodeId": null,
     "root": false,
-    "debugMode": true,
+    "debugMode": false,
     "configuration": null
   },
   "metadata": {
@@ -27,7 +27,8 @@
           "sharedAttributeNames": [],
           "serverAttributeNames": [
             "clearAlarmTimeDelay",
-            "lowFlowRateThreshold"
+            "lowFlowRateThreshold",
+            "lastFlowRateAlarmTime"
           ],
           "latestTsKeyNames": [],
           "getLatestValueWithTs": false
@@ -36,8 +37,8 @@
       {
         "additionalInfo": {
           "description": "Ensure that alarms don't bounce by delaying clear for configured period",
-          "layoutX": 291,
-          "layoutY": 256
+          "layoutX": 45,
+          "layoutY": 479
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Alarm Clear Delay Check",
@@ -49,8 +50,8 @@
       {
         "additionalInfo": {
           "description": "Update device attribute for use in preventing \"alarm bounce\"",
-          "layoutX": 800,
-          "layoutY": 474
+          "layoutX": 688,
+          "layoutY": 370
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Update Alarm Time",
@@ -62,8 +63,8 @@
       {
         "additionalInfo": {
           "description": "Save the time of the alarm to device so we can access later when deciding whether to clear it",
-          "layoutX": 1107,
-          "layoutY": 475
+          "layoutX": 966,
+          "layoutY": 374
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Alarm Time",
@@ -75,14 +76,14 @@
       {
         "additionalInfo": {
           "description": "Create a suitable alert message to be sent via Telegram",
-          "layoutX": 804,
-          "layoutY": 309
+          "layoutX": 692,
+          "layoutY": 487
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Format Telegram message",
         "debugMode": false,
         "configuration": {
-          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n var alarmFlowRate = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\";\n     alarmTemp = msg.details.flow_rate.toFixed(1);\n } else {\n     alarmStatus = \"Cleared\";\n     alarmTemp = msg.details.clearedFlowRate.toFixed(1);\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"' + \" => flow rate: \" + alarmFlowRate;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
+          "jsScript": " var newMsg = {};\n var alarmStatus = \"\";\n var alarmFlowRate = \"\";\n if (metadata.isNewAlarm) {\n     alarmStatus = \"Triggered\";\n     alarmFlowRate = msg.details.flow_rate.toFixed(1);\n } else {\n     alarmStatus = \"Cleared\";\n     alarmFlowRate = msg.details.clearedFlowRate.toFixed(1);\n }\n newMsg.text = alarmStatus + ' \"' + msg.name + '\"' +\n     \" alarm for device: \" + '\"' + metadata.deviceName +\n     '\"' + \" => flow rate: \" + alarmFlowRate;\n return {\n     msg: newMsg,\n     metadata: metadata,\n     msgType: msgType\n };"
         }
       },
       {
@@ -101,8 +102,8 @@
       {
         "additionalInfo": {
           "description": "Create an alarm when flow rate is outside operating norms",
-          "layoutX": 546,
-          "layoutY": 359
+          "layoutX": 345,
+          "layoutY": 374
         },
         "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
         "name": "Create Alarm",
@@ -119,8 +120,8 @@
       {
         "additionalInfo": {
           "description": "Clear the flow rate alarm when it is within operating norms",
-          "layoutX": 548,
-          "layoutY": 259
+          "layoutX": 343,
+          "layoutY": 483
         },
         "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
         "name": "Clear Alarm",
@@ -187,8 +188,8 @@
         },
         "additionalInfo": {
           "description": "Call rule chain to send the message to Telegram",
-          "layoutX": 1105,
-          "layoutY": 304,
+          "layoutX": 968,
+          "layoutY": 486,
           "ruleChainNodeId": "rule-chain-node-10"
         },
         "type": "Success"

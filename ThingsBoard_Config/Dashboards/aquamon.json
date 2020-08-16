@@ -197,7 +197,6 @@
           "color": "rgba(255, 254, 254, 0.87)",
           "padding": "0px",
           "settings": {
-            "maxValue": 50,
             "donutStartAngle": 90,
             "showValue": true,
             "showMinMax": true,
@@ -242,7 +241,8 @@
             "animationDuration": 500,
             "animationRule": "linear",
             "timestampFormat": "yyyy-MM-dd HH:mm:ss",
-            "unitTitle": "Water Temp °C"
+            "unitTitle": "Water Temp °C",
+            "maxValue": 40
           },
           "title": "Water Temperature",
           "dropShadow": true,
@@ -414,7 +414,7 @@
                   "settings": {},
                   "_hash": 0.5315325857746884,
                   "units": null,
-                  "decimals": null,
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": null,
                   "postFuncBody": null
@@ -432,7 +432,6 @@
           "color": "rgba(255, 254, 254, 0.87)",
           "padding": "0px",
           "settings": {
-            "maxValue": 60,
             "donutStartAngle": 90,
             "showValue": true,
             "showMinMax": true,
@@ -477,7 +476,8 @@
             "animationDuration": 500,
             "animationRule": "linear",
             "timestampFormat": "yyyy-MM-dd HH:mm:ss",
-            "unitTitle": "Flow Rate litres/min"
+            "unitTitle": "Flow Rate litres/min",
+            "maxValue": 30
           },
           "title": "Flow Rate",
           "dropShadow": true,
@@ -563,8 +563,8 @@
       "hideAggInterval": false,
       "selectedTab": 0,
       "realtime": {
-        "timewindowMs": 120000,
-        "interval": 10000
+        "timewindowMs": 1800000,
+        "interval": 30000
       },
       "aggregation": {
         "type": "AVG",
